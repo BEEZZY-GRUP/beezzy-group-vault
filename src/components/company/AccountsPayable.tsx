@@ -9,22 +9,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trash2, Pencil, FileText, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { DateRange, isInRange } from '@/components/DateRangeFilter';
 
-export function AccountsPayable({ companyId }: { companyId: CompanyId }) {
+interface Props {
+  companyId: CompanyId;
+  dateRange: DateRange;
+}
+
+export function AccountsPayable({ companyId, dateRange }: Props) {
   const { getCompanyExpenses, deleteExpense, updateExpense } = useData();
-  const expenses = getCompanyExpenses(companyId);
+  const allExpenses = getCompanyExpenses(companyId);
 
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() =>
-    expenses
+    allExpenses
+      .filter(e => isInRange(e.dueDate, dateRange))
       .filter(e => statusFilter === 'all' || e.status === statusFilter)
       .filter(e => categoryFilter === 'all' || e.category === categoryFilter)
       .filter(e => !search || e.description.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()),
-    [expenses, statusFilter, categoryFilter, search]
+    [allExpenses, dateRange, statusFilter, categoryFilter, search]
   );
 
   const totals = useMemo(() => ({
@@ -34,7 +41,7 @@ export function AccountsPayable({ companyId }: { companyId: CompanyId }) {
   }), [filtered]);
 
   const toggleStatus = (id: string) => {
-    const exp = expenses.find(e => e.id === id);
+    const exp = allExpenses.find(e => e.id === id);
     if (exp) {
       updateExpense({ ...exp, status: exp.status === 'pago' ? 'pendente' : 'pago', paymentDate: exp.status === 'pago' ? undefined : new Date().toISOString().split('T')[0] });
       toast.success('Status atualizado');
@@ -43,7 +50,6 @@ export function AccountsPayable({ companyId }: { companyId: CompanyId }) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -68,7 +74,6 @@ export function AccountsPayable({ companyId }: { companyId: CompanyId }) {
         </Select>
       </div>
 
-      {/* Table */}
       <div className="glass-card overflow-hidden">
         <div className="overflow-auto">
           <table className="w-full text-sm">
@@ -95,9 +100,7 @@ export function AccountsPayable({ companyId }: { companyId: CompanyId }) {
                       {e.status.charAt(0).toUpperCase() + e.status.slice(1)}
                     </Badge>
                   </td>
-                  <td className="p-4">
-                    {e.documents.length > 0 && <FileText className="h-4 w-4 text-muted-foreground/50" />}
-                  </td>
+                  <td className="p-4">{e.documents.length > 0 && <FileText className="h-4 w-4 text-muted-foreground/50" />}</td>
                   <td className="p-4">
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => toggleStatus(e.id)}>
@@ -111,12 +114,11 @@ export function AccountsPayable({ companyId }: { companyId: CompanyId }) {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="p-12 text-center text-muted-foreground/50">Nenhuma despesa encontrada</td></tr>
+                <tr><td colSpan={7} className="p-12 text-center text-muted-foreground/50">Nenhuma despesa encontrada no período</td></tr>
               )}
             </tbody>
           </table>
         </div>
-
         <div className="flex flex-wrap gap-6 p-5 border-t border-border/30 bg-secondary/10 text-sm">
           <span>Pendente: <span className="font-semibold text-warning font-mono">{formatCurrency(totals.pendente)}</span></span>
           <span>Pago: <span className="font-semibold text-success font-mono">{formatCurrency(totals.pago)}</span></span>

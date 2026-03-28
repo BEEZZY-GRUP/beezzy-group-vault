@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { CompanyId } from '@/lib/types';
 import { formatCurrency } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { DateRange } from '@/components/DateRangeFilter';
 
 const chartTooltipStyle = {
   contentStyle: {
@@ -22,25 +22,35 @@ const chartTooltipStyle = {
 
 const axisStyle = { fill: 'hsl(215 15% 40%)', fontSize: 11, fontFamily: 'Inter' };
 
-export function Reports({ companyId }: { companyId: CompanyId }) {
+interface Props {
+  companyId: CompanyId;
+  dateRange: DateRange;
+}
+
+export function Reports({ companyId, dateRange }: Props) {
   const { getCompanyExpenses, getCompanyRevenues } = useData();
   const expenses = getCompanyExpenses(companyId);
   const revenues = getCompanyRevenues(companyId);
-  const [period, setPeriod] = useState('6');
 
-  const monthlyData = useMemo(() => {
-    const months = parseInt(period);
-    const data: { name: string; faturamento: number; despesas: number; impostos: number; resultado: number }[] = [];
-    for (let i = months - 1; i >= 0; i--) {
-      const d = new Date(); d.setMonth(d.getMonth() - i);
-      const m = d.getMonth(), y = d.getFullYear();
-      const rev = revenues.filter(r => { const rd = new Date(r.saleDate); return rd.getMonth() === m && rd.getFullYear() === y; }).reduce((s, r) => s + r.grossValue, 0);
-      const exp = expenses.filter(e => { const ed = new Date(e.dueDate); return ed.getMonth() === m && ed.getFullYear() === y; }).reduce((s, e) => s + e.value, 0);
-      const tax = revenues.filter(r => { const rd = new Date(r.saleDate); return rd.getMonth() === m && rd.getFullYear() === y; }).reduce((s, r) => s + r.taxAmount, 0);
-      data.push({ name: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''), faturamento: rev, despesas: exp, impostos: tax, resultado: rev - exp - tax });
+  const monthlyBuckets = useMemo(() => {
+    const buckets: { label: string; month: number; year: number }[] = [];
+    const d = new Date(dateRange.from);
+    while (d <= dateRange.to) {
+      buckets.push({ label: d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', ''), month: d.getMonth(), year: d.getFullYear() });
+      d.setMonth(d.getMonth() + 1);
     }
-    return data;
-  }, [revenues, expenses, period]);
+    return buckets;
+  }, [dateRange]);
+
+  const monthlyData = useMemo(() =>
+    monthlyBuckets.map(b => {
+      const rev = revenues.filter(r => { const rd = new Date(r.saleDate); return rd.getMonth() === b.month && rd.getFullYear() === b.year; }).reduce((s, r) => s + r.grossValue, 0);
+      const exp = expenses.filter(e => { const ed = new Date(e.dueDate); return ed.getMonth() === b.month && ed.getFullYear() === b.year; }).reduce((s, e) => s + e.value, 0);
+      const tax = revenues.filter(r => { const rd = new Date(r.saleDate); return rd.getMonth() === b.month && rd.getFullYear() === b.year; }).reduce((s, r) => s + r.taxAmount, 0);
+      return { name: b.label, faturamento: rev, despesas: exp, impostos: tax, resultado: rev - exp - tax };
+    }),
+    [revenues, expenses, monthlyBuckets]
+  );
 
   const totals = useMemo(() => monthlyData.reduce((acc, d) => ({
     faturamento: acc.faturamento + d.faturamento, despesas: acc.despesas + d.despesas,
@@ -59,14 +69,9 @@ export function Reports({ companyId }: { companyId: CompanyId }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
       <div className="flex items-center gap-4">
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-[180px] bg-secondary/50 border-border/50 h-11"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="3">Últimos 3 meses</SelectItem>
-            <SelectItem value="6">Últimos 6 meses</SelectItem>
-            <SelectItem value="12">Último ano</SelectItem>
-          </SelectContent>
-        </Select>
+        <span className="text-xs text-muted-foreground bg-secondary/50 px-3 py-1.5 rounded-lg border border-border/30">
+          {dateRange.label}
+        </span>
         <Button variant="outline" onClick={exportCSV} className="gap-2">
           <FileDown className="h-4 w-4" /> Exportar CSV
         </Button>

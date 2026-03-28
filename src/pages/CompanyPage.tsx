@@ -7,6 +7,7 @@ import { RevenueForm } from '@/components/company/RevenueForm';
 import { AccountsPayable } from '@/components/company/AccountsPayable';
 import { Reports } from '@/components/company/Reports';
 import { FinancialSettings } from '@/components/company/FinancialSettings';
+import { DateRangeFilter, DateRange, getDefaultDateRange } from '@/components/DateRangeFilter';
 import { motion } from 'framer-motion';
 import { LayoutDashboard, CreditCard, TrendingUp, FileText, BarChart3, Settings, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,23 +21,28 @@ const tabs = [
   { value: 'settings', label: 'Configurações', icon: Settings },
 ];
 
+const tabsWithDateFilter = ['dashboard', 'payable', 'reports'];
+
 export default function CompanyPage() {
   const { companyId } = useParams<{ companyId: string }>();
   const company = companyId as CompanyId;
   const info = COMPANY_INFO[company];
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
 
   if (!info) return <div className="text-muted-foreground">Empresa não encontrada</div>;
 
+  const showDateFilter = tabsWithDateFilter.includes(activeTab);
+
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <CompanyDashboard companyId={company} />;
+      case 'dashboard': return <CompanyDashboard companyId={company} dateRange={dateRange} />;
       case 'expense': return <ExpenseForm companyId={company} />;
       case 'revenue': return <RevenueForm companyId={company} />;
-      case 'payable': return <AccountsPayable companyId={company} />;
-      case 'reports': return <Reports companyId={company} />;
+      case 'payable': return <AccountsPayable companyId={company} dateRange={dateRange} />;
+      case 'reports': return <Reports companyId={company} dateRange={dateRange} />;
       case 'settings': return <FinancialSettings companyId={company} />;
-      default: return <CompanyDashboard companyId={company} />;
+      default: return <CompanyDashboard companyId={company} dateRange={dateRange} />;
     }
   };
 
@@ -50,7 +56,6 @@ export default function CompanyPage() {
       {/* Left sidebar nav */}
       <div className="w-56 shrink-0">
         <div className="sticky top-20 space-y-1">
-          {/* Company header */}
           <div className="flex items-center gap-3 px-3 py-4 mb-2">
             <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
               <span className="text-xl">{info.icon}</span>
@@ -61,7 +66,6 @@ export default function CompanyPage() {
             </div>
           </div>
 
-          {/* Nav items */}
           <nav className="space-y-0.5">
             {tabs.map(tab => {
               const isActive = activeTab === tab.value;
@@ -78,13 +82,19 @@ export default function CompanyPage() {
                 >
                   <tab.icon className="h-4 w-4 shrink-0" />
                   <span className="truncate">{tab.label}</span>
-                  {isActive && (
-                    <ChevronRight className="h-3.5 w-3.5 ml-auto shrink-0 text-primary/60" />
-                  )}
+                  {isActive && <ChevronRight className="h-3.5 w-3.5 ml-auto shrink-0 text-primary/60" />}
                 </button>
               );
             })}
           </nav>
+
+          {/* Date filter in sidebar */}
+          {showDateFilter && (
+            <div className="pt-4 px-1">
+              <p className="text-[10px] text-muted-foreground/60 uppercase tracking-widest font-semibold px-2 mb-2">Período</p>
+              <DateRangeFilter value={dateRange} onChange={setDateRange} className="w-full justify-start" />
+            </div>
+          )}
         </div>
       </div>
 
