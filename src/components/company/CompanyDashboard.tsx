@@ -97,9 +97,9 @@ export function CompanyDashboard({ companyId }: { companyId: CompanyId }) {
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Fluxo de Caixa</h3>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={waterfallData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 6% 16%)" />
-              <XAxis dataKey="name" tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+              <XAxis dataKey="name" tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} />
+              <YAxis tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
               <Tooltip {...tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
                 {waterfallData.map((d, i) => <Cell key={i} fill={d.fill} />)}
