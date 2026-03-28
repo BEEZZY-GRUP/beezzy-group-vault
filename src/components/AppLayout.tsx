@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { DateFilterBar, DateFilterState, getDefaultFilterState } from '@/components/DateFilterBar';
+import { DateFilterProvider } from '@/hooks/useDateFilter';
 import { Download, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -67,9 +68,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-7">
-            {typeof children === 'function'
-              ? (children as any)(dateFilter)
-              : children}
+            <DateFilterProvider value={dateFilter}>
+              {children}
+            </DateFilterProvider>
           </div>
         </div>
       </div>

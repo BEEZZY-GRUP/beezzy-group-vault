@@ -1,128 +1,116 @@
 import { useState, useMemo } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { CompanyId, DEFAULT_CATEGORIES } from '@/lib/types';
+import { CompanyId } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/formatters';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, Pencil, FileText, Search } from 'lucide-react';
+import { Trash2, Pencil, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { DateRange, isInRange } from '@/components/DateRangeFilter';
+import { DateFilterState, isInDateRange } from '@/components/DateFilterBar';
 
 interface Props {
   companyId: CompanyId;
-  dateRange: DateRange;
+  dateFilter: DateFilterState;
 }
 
-export function AccountsPayable({ companyId, dateRange }: Props) {
+export function AccountsPayable({ companyId, dateFilter }: Props) {
   const { getCompanyExpenses, deleteExpense, updateExpense } = useData();
   const allExpenses = getCompanyExpenses(companyId);
 
   const [statusFilter, setStatusFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() =>
     allExpenses
-      .filter(e => isInRange(e.dueDate, dateRange))
+      .filter(e => isInDateRange(e.dueDate, dateFilter))
       .filter(e => statusFilter === 'all' || e.status === statusFilter)
-      .filter(e => categoryFilter === 'all' || e.category === categoryFilter)
       .filter(e => !search || e.description.toLowerCase().includes(search.toLowerCase()))
       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()),
-    [allExpenses, dateRange, statusFilter, categoryFilter, search]
+    [allExpenses, dateFilter, statusFilter, search]
   );
 
-  const totals = useMemo(() => ({
-    pendente: filtered.filter(e => e.status === 'pendente').reduce((s, e) => s + e.value, 0),
-    pago: filtered.filter(e => e.status === 'pago').reduce((s, e) => s + e.value, 0),
-    vencido: filtered.filter(e => e.status === 'vencido').reduce((s, e) => s + e.value, 0),
-  }), [filtered]);
+  const pend = filtered.filter(e => e.status === 'pendente').reduce((s, e) => s + e.value, 0);
+  const venc = filtered.filter(e => e.status === 'vencido').reduce((s, e) => s + e.value, 0);
+  const pago = filtered.filter(e => e.status === 'pago').reduce((s, e) => s + e.value, 0);
 
   const toggleStatus = (id: string) => {
     const exp = allExpenses.find(e => e.id === id);
     if (exp) {
-      updateExpense({ ...exp, status: exp.status === 'pago' ? 'pendente' : 'pago', paymentDate: exp.status === 'pago' ? undefined : new Date().toISOString().split('T')[0] });
+      updateExpense({ ...exp, status: exp.status === 'pago' ? 'pendente' : 'pago' });
       toast.success('Status atualizado');
     }
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar por descrição..." value={search} onChange={e => setSearch(e.target.value)}
-            className="pl-11 bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px] bg-secondary/50 border-border/50 h-11"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos Status</SelectItem>
-            <SelectItem value="pendente">Pendente</SelectItem>
-            <SelectItem value="pago">Pago</SelectItem>
-            <SelectItem value="vencido">Vencido</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[180px] bg-secondary/50 border-border/50 h-11"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todas Categorias</SelectItem>
-            {DEFAULT_CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
       <div className="glass-card overflow-hidden">
-        <div className="overflow-auto">
-          <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-card/95 backdrop-blur-sm">
-              <tr className="border-b border-border/30 text-muted-foreground/70 text-left">
-                <th className="p-4 font-medium text-xs uppercase tracking-wider">Descrição</th>
-                <th className="p-4 font-medium text-xs uppercase tracking-wider">Categoria</th>
-                <th className="p-4 font-medium text-xs uppercase tracking-wider">Valor</th>
-                <th className="p-4 font-medium text-xs uppercase tracking-wider">Vencimento</th>
-                <th className="p-4 font-medium text-xs uppercase tracking-wider">Status</th>
-                <th className="p-4 font-medium text-xs uppercase tracking-wider">Docs</th>
-                <th className="p-4 font-medium text-xs uppercase tracking-wider">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(e => (
-                <tr key={e.id} className="border-b border-border/20 hover:bg-accent/30 transition-colors">
-                  <td className="p-4 font-medium text-foreground/90">{e.description}</td>
-                  <td className="p-4 text-muted-foreground">{e.category}</td>
-                  <td className="p-4 font-mono font-medium text-foreground/90">{formatCurrency(e.value)}</td>
-                  <td className="p-4 text-foreground/60">{formatDate(e.dueDate)}</td>
-                  <td className="p-4">
-                    <Badge variant="outline" className={`status-${e.status} border-0 text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-md cursor-pointer`} onClick={() => toggleStatus(e.id)}>
-                      {e.status.charAt(0).toUpperCase() + e.status.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="p-4">{e.documents.length > 0 && <FileText className="h-4 w-4 text-muted-foreground/50" />}</td>
-                  <td className="p-4">
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => toggleStatus(e.id)}>
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => { deleteExpense(e.id); toast.success('Despesa excluída'); }}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={7} className="p-12 text-center text-muted-foreground/50">Nenhuma despesa encontrada no período</td></tr>
-              )}
-            </tbody>
-          </table>
+        <div className="flex justify-between items-center p-4 border-b border-border">
+          <span className="text-[13px] font-medium">Contas a Pagar</span>
+          <div className="flex gap-2">
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              className="bg-secondary border border-input rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground outline-none"
+            >
+              <option value="all">Todos os status</option>
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+              <option value="vencido">Vencido</option>
+            </select>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Pesquisar..."
+                className="bg-secondary border border-input rounded-md pl-7 pr-3 py-1.5 text-[11px] text-foreground outline-none w-40 focus:border-primary transition-colors"
+              />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-wrap gap-6 p-5 border-t border-border/30 bg-secondary/10 text-sm">
-          <span>Pendente: <span className="font-semibold text-warning font-mono">{formatCurrency(totals.pendente)}</span></span>
-          <span>Pago: <span className="font-semibold text-success font-mono">{formatCurrency(totals.pago)}</span></span>
-          <span>Vencido: <span className="font-semibold text-destructive font-mono">{formatCurrency(totals.vencido)}</span></span>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-border bg-[rgba(255,255,255,0.02)]">
+              <th className="text-left p-[9px_18px] text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground/60">Descrição</th>
+              <th className="text-left p-[9px_18px] text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground/60">Categoria</th>
+              <th className="text-left p-[9px_18px] text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground/60">Valor</th>
+              <th className="text-left p-[9px_18px] text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground/60">Vencimento</th>
+              <th className="text-left p-[9px_18px] text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground/60">Status</th>
+              <th className="text-left p-[9px_18px] text-[9px] font-medium uppercase tracking-[0.08em] text-muted-foreground/60">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(e => (
+              <tr key={e.id} className="border-b border-border last:border-b-0 hover:bg-[rgba(255,255,255,0.02)] transition-colors">
+                <td className="p-[11px_18px] text-xs">{e.description}</td>
+                <td className="p-[11px_18px] text-xs text-muted-foreground">{e.category}</td>
+                <td className="p-[11px_18px] text-xs">{formatCurrency(e.value)}</td>
+                <td className="p-[11px_18px] text-xs text-muted-foreground">{formatDate(e.dueDate)}</td>
+                <td className="p-[11px_18px] text-xs">
+                  <span className={`status-${e.status} inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded cursor-pointer`} onClick={() => toggleStatus(e.id)}>
+                    {e.status.charAt(0).toUpperCase() + e.status.slice(1)}
+                  </span>
+                </td>
+                <td className="p-[11px_18px] text-xs">
+                  <div className="flex gap-1">
+                    <button className="p-1 text-muted-foreground hover:text-foreground transition-colors" onClick={() => toggleStatus(e.id)}>
+                      <Pencil className="w-[13px] h-[13px]" />
+                    </button>
+                    <button className="p-1 text-muted-foreground hover:text-destructive transition-colors" onClick={() => { deleteExpense(e.id); toast.success('Registro removido'); }}>
+                      <Trash2 className="w-[13px] h-[13px]" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr><td colSpan={6} className="p-12 text-center text-muted-foreground/50 text-xs">Nenhuma despesa encontrada</td></tr>
+            )}
+          </tbody>
+        </table>
+        <div className="flex gap-6 p-3 px-[18px] border-t border-border bg-[rgba(255,255,255,0.01)] text-[11px] text-muted-foreground">
+          <span className="text-warning">Pendente: <span className="font-medium">{formatCurrency(pend)}</span></span>
+          <span className="text-destructive">Vencido: <span className="font-medium">{formatCurrency(venc)}</span></span>
+          <span className="text-success">Pago: <span className="font-medium">{formatCurrency(pago)}</span></span>
         </div>
       </div>
     </motion.div>
