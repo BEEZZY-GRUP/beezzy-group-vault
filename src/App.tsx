@@ -1,25 +1,45 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
+import { AppLayout } from "@/components/AppLayout";
+import Login from "./pages/Login";
+import GroupOverview from "./pages/GroupOverview";
+import CompanyPage from "./pages/CompanyPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) return <Login />;
+
+  return (
+    <DataProvider>
+      <BrowserRouter>
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<GroupOverview />} />
+            <Route path="/company/:companyId" element={<CompanyPage />} />
+            <Route path="/settings" element={<div className="glass-card p-6"><h1 className="text-xl font-semibold mb-4">Configurações Gerais</h1><p className="text-muted-foreground">Configurações gerais do grupo em desenvolvimento.</p></div>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AppLayout>
+      </BrowserRouter>
+    </DataProvider>
+  );
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
