@@ -6,11 +6,25 @@ import { formatCurrency, formatDate } from '@/lib/formatters';
 import { DollarSign, TrendingDown, ArrowRightLeft, ShoppingCart, Receipt } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
 
 const COLORS = [COMPANY_INFO.beezzy.color, COMPANY_INFO.palpita.color, COMPANY_INFO.starmind.color];
 
+const chartTooltipStyle = {
+  contentStyle: {
+    background: 'hsl(240 6% 10%)',
+    border: '1px solid hsl(240 5% 18%)',
+    borderRadius: '10px',
+    color: '#fff',
+    fontSize: '12px',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+  },
+};
+
+const axisStyle = { fill: 'hsl(215 15% 40%)', fontSize: 11, fontFamily: 'Inter' };
+
 export default function GroupOverview() {
-  const { expenses, revenues, settings } = useData();
+  const { expenses, revenues } = useData();
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -21,36 +35,24 @@ export default function GroupOverview() {
   };
 
   const totalRevenue = useMemo(() =>
-    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.grossValue, 0),
-    [revenues]
-  );
-
+    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.grossValue, 0), [revenues]);
   const totalExpenses = useMemo(() =>
-    expenses.filter(e => isCurrentMonth(e.dueDate)).reduce((sum, e) => sum + e.value, 0),
-    [expenses]
-  );
-
+    expenses.filter(e => isCurrentMonth(e.dueDate)).reduce((sum, e) => sum + e.value, 0), [expenses]);
   const totalSales = useMemo(() =>
-    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.quantity, 0),
-    [revenues]
-  );
-
+    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.quantity, 0), [revenues]);
   const totalTaxes = useMemo(() =>
-    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.taxAmount, 0),
-    [revenues]
-  );
+    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.taxAmount, 0), [revenues]);
 
   const lineData = useMemo(() => {
     const months: Record<string, Record<string, number>> = {};
     for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      const key = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+      const d = new Date(); d.setMonth(d.getMonth() - i);
+      const key = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
       months[key] = { beezzy: 0, palpita: 0, starmind: 0 };
     }
     revenues.forEach(r => {
       const d = new Date(r.saleDate);
-      const key = d.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' });
+      const key = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
       if (months[key]) months[key][r.company] += r.grossValue;
     });
     return Object.entries(months).map(([name, data]) => ({ name, ...data }));
@@ -73,92 +75,124 @@ export default function GroupOverview() {
   }, [revenues]);
 
   const contasPagar = useMemo(() =>
-    expenses.filter(e => e.status !== 'pago').sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()),
-    [expenses]
-  );
-
-  const tooltipStyle = { contentStyle: { background: '#fff', border: '1px solid hsl(220 13% 91%)', borderRadius: '8px', color: '#1a1a2e' } };
+    expenses.filter(e => e.status !== 'pago').sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()), [expenses]);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-bold">Visão Geral do Grupo</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <KPICard title="Faturamento Total" value={totalRevenue} icon={DollarSign} />
-        <KPICard title="Despesas Totais" value={totalExpenses} icon={TrendingDown} />
-        <KPICard title="Fluxo de Caixa" value={totalRevenue - totalExpenses} icon={ArrowRightLeft} />
-        <KPICard title="Total de Vendas" value={totalSales} icon={ShoppingCart} format="number" />
-        <KPICard title="Impostos a Pagar" value={totalTaxes} icon={Receipt} />
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-8"
+    >
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Visão Geral do Grupo</h1>
+        <p className="text-sm text-muted-foreground mt-1">Consolidação financeira de todas as empresas</p>
       </div>
 
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <KPICard title="Faturamento Total" value={totalRevenue} icon={DollarSign} delay={0} />
+        <KPICard title="Despesas Totais" value={totalExpenses} icon={TrendingDown} delay={1} />
+        <KPICard title="Fluxo de Caixa" value={totalRevenue - totalExpenses} icon={ArrowRightLeft} delay={2} />
+        <KPICard title="Total de Vendas" value={totalSales} icon={ShoppingCart} format="number" delay={3} />
+        <KPICard title="Impostos a Pagar" value={totalTaxes} icon={Receipt} delay={4} />
+      </div>
+
+      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Receita Mensal por Empresa</h3>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Receita Mensal por Empresa</h3>
+            <span className="text-[10px] text-muted-foreground/60 bg-secondary/50 px-2 py-1 rounded-md">Últimos 6 meses</span>
+          </div>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={lineData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-              <XAxis dataKey="name" tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-              <Tooltip {...tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
-              <Legend />
-              <Line type="monotone" dataKey="beezzy" stroke={COLORS[0]} name="Beezzy" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="palpita" stroke={COLORS[1]} name="Palpita.io" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="starmind" stroke={COLORS[2]} name="Starmind" strokeWidth={2} dot={false} />
+              <defs>
+                {COLORS.map((color, i) => (
+                  <linearGradient key={i} id={`lineGrad${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={color} stopOpacity={0} />
+                  </linearGradient>
+                ))}
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 5% 14%)" vertical={false} />
+              <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip {...chartTooltipStyle} formatter={(v: number) => formatCurrency(v)} />
+              <Legend wrapperStyle={{ fontSize: '11px', color: 'hsl(215 15% 55%)' }} />
+              <Line type="monotone" dataKey="beezzy" stroke={COLORS[0]} name="Beezzy" strokeWidth={2.5} dot={false} />
+              <Line type="monotone" dataKey="palpita" stroke={COLORS[1]} name="Palpita.io" strokeWidth={2.5} dot={false} />
+              <Line type="monotone" dataKey="starmind" stroke={COLORS[2]} name="Starmind" strokeWidth={2.5} dot={false} />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
-        <div className="glass-card p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Despesas por Empresa</h3>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Despesas por Empresa</h3>
+            <span className="text-[10px] text-muted-foreground/60 bg-secondary/50 px-2 py-1 rounded-md">Mês atual</span>
+          </div>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
-              <XAxis dataKey="name" tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-              <Tooltip {...tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
-              <Bar dataKey="value" name="Despesas" radius={[6, 6, 0, 0]}>
+            <BarChart data={barData} barSize={48}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 5% 14%)" vertical={false} />
+              <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
+              <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip {...chartTooltipStyle} formatter={(v: number) => formatCurrency(v)} />
+              <Bar dataKey="value" name="Despesas" radius={[8, 8, 0, 0]}>
                 {barData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
       </div>
 
+      {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="glass-card p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Participação no Faturamento</h3>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass-card p-6">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-6">Participação no Faturamento</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={pieData} cx="50%" cy="50%" outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}>
+              <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} dataKey="value" strokeWidth={0}
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
                 {pieData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
               </Pie>
-              <Tooltip {...tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
+              <Tooltip {...chartTooltipStyle} formatter={(v: number) => formatCurrency(v)} />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </motion.div>
 
-        <div className="lg:col-span-2 glass-card p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Contas a Pagar</h3>
-          <div className="overflow-auto max-h-[300px]">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="lg:col-span-2 glass-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Contas a Pagar</h3>
+            <span className="text-[10px] text-muted-foreground/60 bg-secondary/50 px-2 py-1 rounded-md">{contasPagar.length} pendentes</span>
+          </div>
+          <div className="overflow-auto max-h-[280px]">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/50 text-muted-foreground text-left">
-                  <th className="pb-2 font-medium">Empresa</th>
-                  <th className="pb-2 font-medium">Descrição</th>
-                  <th className="pb-2 font-medium">Valor</th>
-                  <th className="pb-2 font-medium">Vencimento</th>
-                  <th className="pb-2 font-medium">Status</th>
+              <thead className="sticky top-0 bg-card/95 backdrop-blur-sm">
+                <tr className="border-b border-border/30 text-muted-foreground/70 text-left">
+                  <th className="pb-3 font-medium text-xs uppercase tracking-wider">Empresa</th>
+                  <th className="pb-3 font-medium text-xs uppercase tracking-wider">Descrição</th>
+                  <th className="pb-3 font-medium text-xs uppercase tracking-wider">Valor</th>
+                  <th className="pb-3 font-medium text-xs uppercase tracking-wider">Vencimento</th>
+                  <th className="pb-3 font-medium text-xs uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {contasPagar.map(e => (
-                  <tr key={e.id} className="border-b border-border/30">
-                    <td className="py-2.5">{COMPANY_INFO[e.company].icon} {COMPANY_INFO[e.company].name}</td>
-                    <td className="py-2.5">{e.description}</td>
-                    <td className="py-2.5">{formatCurrency(e.value)}</td>
-                    <td className="py-2.5">{formatDate(e.dueDate)}</td>
-                    <td className="py-2.5">
-                      <Badge variant="outline" className={`status-${e.status} border-0 text-xs`}>
+                  <tr key={e.id} className="border-b border-border/20 hover:bg-accent/30 transition-colors">
+                    <td className="py-3">
+                      <span className="inline-flex items-center gap-2">
+                        <span>{COMPANY_INFO[e.company].icon}</span>
+                        <span className="text-foreground/80 font-medium">{COMPANY_INFO[e.company].name}</span>
+                      </span>
+                    </td>
+                    <td className="py-3 text-foreground/70">{e.description}</td>
+                    <td className="py-3 font-mono font-medium text-foreground/90">{formatCurrency(e.value)}</td>
+                    <td className="py-3 text-foreground/60">{formatDate(e.dueDate)}</td>
+                    <td className="py-3">
+                      <Badge variant="outline" className={`status-${e.status} border-0 text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-md`}>
                         {e.status.charAt(0).toUpperCase() + e.status.slice(1)}
                       </Badge>
                     </td>
@@ -167,8 +201,8 @@ export default function GroupOverview() {
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
