@@ -8,6 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Login from "./pages/Login";
 import GroupOverview from "./pages/GroupOverview";
 import CompanyPage from "./pages/CompanyPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,7 +25,7 @@ function AppRoutes() {
           <Routes>
             <Route path="/" element={<GroupOverview />} />
             <Route path="/company/:companyId" element={<CompanyPage />} />
-            <Route path="/settings" element={<div className="glass-card p-6"><h1 className="text-xl font-semibold mb-4">Configurações Gerais</h1><p className="text-muted-foreground">Configurações gerais do grupo em desenvolvimento.</p></div>} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppLayout>

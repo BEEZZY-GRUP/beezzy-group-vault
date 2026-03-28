@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,50 +6,50 @@
 
 @layer base {
   :root {
-    --background: 240 6% 7%;
-    --foreground: 0 0% 95%;
+    --background: 0 0% 3.1%;
+    --foreground: 0 0% 94%;
 
-    --card: 240 6% 10%;
-    --card-foreground: 0 0% 95%;
+    --card: 0 0% 6.7%;
+    --card-foreground: 0 0% 94%;
 
-    --popover: 240 6% 10%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 0 0% 6.7%;
+    --popover-foreground: 0 0% 94%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 44 91% 53%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 240 5% 14%;
-    --secondary-foreground: 215 15% 70%;
+    --secondary: 0 0% 7.8%;
+    --secondary-foreground: 0 0% 60%;
 
-    --muted: 240 5% 14%;
-    --muted-foreground: 215 15% 55%;
+    --muted: 0 0% 7.8%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 240 5% 16%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 0 0% 9%;
+    --accent-foreground: 0 0% 94%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 84% 39%;
+    --success: 142 72% 39%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
 
-    --border: 240 5% 16%;
-    --input: 240 5% 16%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 100% / 0.07;
+    --input: 0 0% 100% / 0.12;
+    --ring: 44 91% 53%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    --sidebar-background: 240 6% 9%;
-    --sidebar-foreground: 215 15% 55%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 91% 60%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 5% 14%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 0 0% 2.7%;
+    --sidebar-foreground: 0 0% 40%;
+    --sidebar-primary: 44 91% 53%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 44 91% 53%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 100% / 0.07;
+    --sidebar-ring: 44 91% 53%;
   }
 }
 
@@ -60,64 +60,72 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(240 5% 20%);
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(240 5% 28%);
+    background: hsl(0 0% 100% / 0.1);
+    border-radius: 2px;
   }
 }
 
 @layer utilities {
+  .font-display {
+    font-family: 'Syne', sans-serif;
+  }
+
   .glass-card {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl;
-    box-shadow: 0 0 0 1px hsl(240 5% 16% / 0.5), 0 4px 24px -4px hsl(0 0% 0% / 0.3);
+    @apply bg-card border border-border rounded-[var(--radius)];
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300;
+    @apply glass-card transition-all duration-200;
   }
   .glass-card-hover:hover {
-    border-color: hsl(217 91% 60% / 0.3);
-    box-shadow: 0 0 0 1px hsl(217 91% 60% / 0.15), 0 8px 32px -4px hsl(0 0% 0% / 0.4), 0 0 24px -8px hsl(217 91% 60% / 0.1);
+    border-color: hsl(0 0% 100% / 0.12);
   }
 
-  .glow-primary {
-    box-shadow: 0 0 32px hsl(217 91% 60% / 0.15), 0 0 8px hsl(217 91% 60% / 0.1);
+  .accent-gradient {
+    background: linear-gradient(90deg, #F5C518, #E6A800);
+  }
+
+  .accent-text {
+    background: linear-gradient(90deg, #F5C518, #E6A800);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .status-pendente {
-    @apply bg-warning/15 text-warning font-medium;
+    @apply bg-warning/10 text-warning font-medium;
   }
 
   .status-pago {
-    @apply bg-success/15 text-success font-medium;
+    @apply bg-success/10 text-success font-medium;
   }
 
   .status-vencido {
-    @apply bg-destructive/15 text-destructive font-medium;
+    @apply bg-destructive/10 text-destructive font-medium;
   }
 
-  .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400;
+  .badge-beezzy {
+    background: rgba(139,92,246,0.12);
+    color: #a78bfa;
   }
-
-  .dot-pattern {
-    background-image: radial-gradient(circle, hsl(240 5% 20%) 1px, transparent 1px);
-    background-size: 24px 24px;
+  .badge-palpita {
+    background: rgba(236,72,153,0.1);
+    color: #f472b6;
+  }
+  .badge-starmind {
+    background: rgba(245,197,24,0.1);
+    color: #F5C518;
   }
 }
