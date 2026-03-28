@@ -77,7 +77,7 @@ export default function GroupOverview() {
     [expenses]
   );
 
-  const tooltipStyle = { contentStyle: { background: 'hsl(240 8% 8%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '8px', color: '#fff' } };
+  const tooltipStyle = { contentStyle: { background: '#fff', border: '1px solid hsl(220 13% 91%)', borderRadius: '8px', color: '#1a1a2e' } };
 
   return (
     <div className="space-y-6 animate-fade-in">
