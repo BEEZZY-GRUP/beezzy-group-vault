@@ -77,7 +77,7 @@ export default function GroupOverview() {
     [expenses]
   );
 
-  const tooltipStyle = { contentStyle: { background: 'hsl(240 8% 8%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '8px', color: '#fff' } };
+  const tooltipStyle = { contentStyle: { background: '#fff', border: '1px solid hsl(220 13% 91%)', borderRadius: '8px', color: '#1a1a2e' } };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -96,9 +96,9 @@ export default function GroupOverview() {
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Receita Mensal por Empresa</h3>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={lineData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 6% 16%)" />
-              <XAxis dataKey="name" tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+              <XAxis dataKey="name" tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} />
+              <YAxis tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
               <Tooltip {...tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
               <Legend />
               <Line type="monotone" dataKey="beezzy" stroke={COLORS[0]} name="Beezzy" strokeWidth={2} dot={false} />
@@ -112,9 +112,9 @@ export default function GroupOverview() {
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Despesas por Empresa</h3>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={barData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 6% 16%)" />
-              <XAxis dataKey="name" tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+              <XAxis dataKey="name" tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} />
+              <YAxis tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
               <Tooltip {...tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
               <Bar dataKey="value" name="Despesas" radius={[6, 6, 0, 0]}>
                 {barData.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}

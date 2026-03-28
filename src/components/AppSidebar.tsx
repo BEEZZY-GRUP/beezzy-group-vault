@@ -34,8 +34,8 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
-        <div className="p-4 flex items-center gap-2">
-          <span className="text-xl">🐝</span>
+        <div className="p-4 flex items-center gap-2 border-b border-border/50 mb-2">
+          <span className="text-2xl">🐝</span>
           {!collapsed && <span className="font-bold text-sm tracking-tight text-foreground">BEEZZY GROUP</span>}
         </div>
 
