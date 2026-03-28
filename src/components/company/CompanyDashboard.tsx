@@ -72,9 +72,9 @@ export function CompanyDashboard({ companyId }: { companyId: CompanyId }) {
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Receita Mensal</h3>
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 6% 16%)" />
-              <XAxis dataKey="name" tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} />
-              <YAxis tick={{ fill: 'hsl(215 15% 55%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" />
+              <XAxis dataKey="name" tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} />
+              <YAxis tick={{ fill: 'hsl(220 9% 46%)', fontSize: 12 }} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
               <Tooltip {...tooltipStyle} formatter={(v: number) => formatCurrency(v)} />
               <Line type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={2} dot={false} />
             </LineChart>
