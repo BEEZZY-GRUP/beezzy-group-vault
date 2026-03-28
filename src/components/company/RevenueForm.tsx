@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { FileText, Paperclip, X } from 'lucide-react';
+import { FileText, Paperclip, X, Upload, Calculator } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function RevenueForm({ companyId }: { companyId: CompanyId }) {
   const { addRevenue, getCompanySettings } = useData();
@@ -31,17 +32,10 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
     }
 
     const revenue: Revenue = {
-      id: generateId(),
-      company: companyId,
-      description: form.description,
-      client: form.client,
-      grossValue: gross,
-      taxAmount,
-      netValue,
-      saleDate: form.saleDate,
-      paymentMethod: form.paymentMethod,
-      quantity: parseInt(form.quantity) || 1,
-      notes: form.notes || undefined,
+      id: generateId(), company: companyId, description: form.description,
+      client: form.client, grossValue: gross, taxAmount, netValue,
+      saleDate: form.saleDate, paymentMethod: form.paymentMethod,
+      quantity: parseInt(form.quantity) || 1, notes: form.notes || undefined,
       documents: [
         ...(docs.notaFiscal ? [{ name: docs.notaFiscal.name, type: 'nota-fiscal', size: docs.notaFiscal.size }] : []),
         ...docs.outros.map(f => ({ name: f.name, type: 'outro', size: f.size })),
@@ -54,88 +48,115 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
   };
 
   return (
-    <div className="glass-card p-6 max-w-3xl">
-      <h2 className="text-lg font-semibold mb-6">Lançar Faturamento</h2>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 max-w-3xl">
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold">Lançar Faturamento</h2>
+        <p className="text-sm text-muted-foreground mt-1">Registre uma nova venda ou receita</p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <Label>Descrição / Produto / Serviço *</Label>
-            <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Descrição / Produto *</Label>
+            <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Cliente</Label>
-            <Input value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Cliente</Label>
+            <Input value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Valor Bruto (R$) *</Label>
-            <Input type="number" step="0.01" value={form.grossValue} onChange={e => setForm(f => ({ ...f, grossValue: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Valor Bruto (R$) *</Label>
+            <Input type="number" step="0.01" value={form.grossValue} onChange={e => setForm(f => ({ ...f, grossValue: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 font-mono focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Imposto Calculado</Label>
-            <Input value={formatCurrency(taxAmount)} readOnly className="bg-muted cursor-not-allowed" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Imposto Calculado</Label>
+            <Input value={formatCurrency(taxAmount)} readOnly className="bg-secondary/20 border-border/30 h-11 cursor-not-allowed font-mono text-muted-foreground" />
           </div>
           <div className="space-y-2">
-            <Label>Valor Líquido</Label>
-            <Input value={formatCurrency(netValue)} readOnly className="bg-muted cursor-not-allowed" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Valor Líquido</Label>
+            <Input value={formatCurrency(netValue)} readOnly className="bg-secondary/20 border-border/30 h-11 cursor-not-allowed font-mono text-success" />
           </div>
           <div className="space-y-2">
-            <Label>Data da venda *</Label>
-            <Input type="date" value={form.saleDate} onChange={e => setForm(f => ({ ...f, saleDate: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Data da Venda *</Label>
+            <Input type="date" value={form.saleDate} onChange={e => setForm(f => ({ ...f, saleDate: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Forma de pagamento *</Label>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Forma de Pagamento *</Label>
             <Select value={form.paymentMethod} onValueChange={v => setForm(f => ({ ...f, paymentMethod: v }))}>
-              <SelectTrigger className="bg-secondary"><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {PAYMENT_METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
+              <SelectTrigger className="bg-secondary/50 border-border/50 h-11"><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{PAYMENT_METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Quantidade</Label>
-            <Input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Quantidade</Label>
+            <Input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
         </div>
 
         {gross > 0 && (
-          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-sm">
-            <span className="text-muted-foreground">Valor Bruto: </span><span className="font-medium">{formatCurrency(gross)}</span>
-            <span className="text-muted-foreground ml-4">Alíquota: </span><span className="font-medium">{settings.taxRate}%</span>
-            <span className="text-muted-foreground ml-4">Imposto: </span><span className="font-medium">{formatCurrency(taxAmount)}</span>
-            <span className="text-muted-foreground ml-4">Valor Líquido: </span><span className="font-semibold text-primary">{formatCurrency(netValue)}</span>
-          </div>
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
+            <div className="bg-primary/5 border border-primary/15 rounded-xl p-5 flex items-center gap-4">
+              <Calculator className="h-5 w-5 text-primary shrink-0" />
+              <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                <span><span className="text-muted-foreground">Bruto:</span> <span className="font-semibold text-foreground">{formatCurrency(gross)}</span></span>
+                <span><span className="text-muted-foreground">Alíquota:</span> <span className="font-semibold text-foreground">{settings.taxRate}%</span></span>
+                <span><span className="text-muted-foreground">Imposto:</span> <span className="font-semibold text-warning">{formatCurrency(taxAmount)}</span></span>
+                <span><span className="text-muted-foreground">Líquido:</span> <span className="font-bold text-success">{formatCurrency(netValue)}</span></span>
+              </div>
+            </div>
+          </motion.div>
         )}
 
         <div className="space-y-2">
-          <Label>Observações</Label>
-          <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-secondary" />
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Observações</Label>
+          <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-secondary/50 border-border/50 min-h-[80px] focus:border-primary/50" />
         </div>
 
         <div className="space-y-3">
-          <Label className="text-muted-foreground">Documentos</Label>
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Documentos</Label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => document.getElementById(`rev-nf-${companyId}`)?.click()}>
-                <FileText className="h-4 w-4 mr-2" /> Upload Nota Fiscal de Saída
-              </Button>
-              <input id={`rev-nf-${companyId}`} type="file" accept=".pdf,.jpg,.png" className="hidden" onChange={e => setDocs(d => ({ ...d, notaFiscal: e.target.files?.[0] || null }))} />
-              {docs.notaFiscal && <div className="flex items-center gap-2 text-xs text-muted-foreground"><span>{docs.notaFiscal.name}</span><X className="h-3 w-3 cursor-pointer" onClick={() => setDocs(d => ({ ...d, notaFiscal: null }))} /></div>}
+              <button type="button" onClick={() => document.getElementById(`rev-nf-${companyId}`)?.click()}
+                className="w-full flex items-center gap-2 justify-center py-3 px-4 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all"
+              >
+                <Upload className="h-4 w-4" /> Nota Fiscal de Saída
+              </button>
+              <input id={`rev-nf-${companyId}`} type="file" accept=".pdf,.jpg,.png" className="hidden"
+                onChange={e => setDocs(d => ({ ...d, notaFiscal: e.target.files?.[0] || null }))} />
+              {docs.notaFiscal && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/30 rounded-lg px-3 py-2">
+                  <FileText className="h-3 w-3 shrink-0" />
+                  <span className="truncate flex-1">{docs.notaFiscal.name}</span>
+                  <X className="h-3 w-3 cursor-pointer hover:text-destructive shrink-0" onClick={() => setDocs(d => ({ ...d, notaFiscal: null }))} />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => document.getElementById(`rev-outros-${companyId}`)?.click()}>
-                <Paperclip className="h-4 w-4 mr-2" /> Outros Documentos
-              </Button>
-              <input id={`rev-outros-${companyId}`} type="file" multiple className="hidden" onChange={e => setDocs(d => ({ ...d, outros: [...d.outros, ...Array.from(e.target.files || [])] }))} />
-              {docs.outros.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground"><span>{f.name}</span><X className="h-3 w-3 cursor-pointer" onClick={() => setDocs(d => ({ ...d, outros: d.outros.filter((_, j) => j !== i) }))} /></div>)}
+              <button type="button" onClick={() => document.getElementById(`rev-outros-${companyId}`)?.click()}
+                className="w-full flex items-center gap-2 justify-center py-3 px-4 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all"
+              >
+                <Paperclip className="h-4 w-4" /> Outros Documentos
+              </button>
+              <input id={`rev-outros-${companyId}`} type="file" multiple className="hidden"
+                onChange={e => setDocs(d => ({ ...d, outros: [...d.outros, ...Array.from(e.target.files || [])] }))} />
+              {docs.outros.map((f, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/30 rounded-lg px-3 py-2">
+                  <Paperclip className="h-3 w-3 shrink-0" />
+                  <span className="truncate flex-1">{f.name}</span>
+                  <X className="h-3 w-3 cursor-pointer hover:text-destructive shrink-0" onClick={() => setDocs(d => ({ ...d, outros: d.outros.filter((_, j) => j !== i) }))} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="flex gap-3 pt-2">
-          <Button type="submit">Salvar Faturamento</Button>
-          <Button type="button" variant="outline" onClick={() => setForm({ description: '', client: '', grossValue: '', saleDate: '', paymentMethod: '', quantity: '1', notes: '' })}>Cancelar</Button>
+        <div className="flex gap-3 pt-4 border-t border-border/30">
+          <Button type="submit" className="px-8">Salvar Faturamento</Button>
+          <Button type="button" variant="outline"
+            onClick={() => setForm({ description: '', client: '', grossValue: '', saleDate: '', paymentMethod: '', quantity: '1', notes: '' })}>
+            Cancelar
+          </Button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }

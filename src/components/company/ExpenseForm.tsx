@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { FileText, Receipt, Paperclip, X } from 'lucide-react';
+import { FileText, Receipt, Paperclip, X, Upload } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function ExpenseForm({ companyId }: { companyId: CompanyId }) {
   const { addExpense, getCompanySettings } = useData();
@@ -31,16 +32,10 @@ export function ExpenseForm({ companyId }: { companyId: CompanyId }) {
     }
 
     const expense: Expense = {
-      id: generateId(),
-      company: companyId,
-      description: form.description,
-      category: form.category,
-      value: parseFloat(form.value),
-      dueDate: form.dueDate,
-      paymentDate: form.paymentDate || undefined,
-      status: form.paid ? 'pago' : 'pendente',
-      costCenter: form.costCenter || undefined,
-      notes: form.notes || undefined,
+      id: generateId(), company: companyId, description: form.description,
+      category: form.category, value: parseFloat(form.value), dueDate: form.dueDate,
+      paymentDate: form.paymentDate || undefined, status: form.paid ? 'pago' : 'pendente',
+      costCenter: form.costCenter || undefined, notes: form.notes || undefined,
       documents: [
         ...(docs.contrato ? [{ name: docs.contrato.name, type: 'contrato', size: docs.contrato.size }] : []),
         ...(docs.notaFiscal ? [{ name: docs.notaFiscal.name, type: 'nota-fiscal', size: docs.notaFiscal.size }] : []),
@@ -56,83 +51,105 @@ export function ExpenseForm({ companyId }: { companyId: CompanyId }) {
   const formatFileSize = (bytes: number) => bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
 
   return (
-    <div className="glass-card p-6 max-w-3xl">
-      <h2 className="text-lg font-semibold mb-6">Lançar Despesa</h2>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-8 max-w-3xl">
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold">Lançar Despesa</h2>
+        <p className="text-sm text-muted-foreground mt-1">Registre uma nova despesa para esta empresa</p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2">
-            <Label>Descrição da despesa *</Label>
-            <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Descrição *</Label>
+            <Input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Categoria *</Label>
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Categoria *</Label>
             <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
-              <SelectTrigger className="bg-secondary"><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-              </SelectContent>
+              <SelectTrigger className="bg-secondary/50 border-border/50 h-11"><SelectValue placeholder="Selecione" /></SelectTrigger>
+              <SelectContent>{categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Valor (R$) *</Label>
-            <Input type="number" step="0.01" value={form.value} onChange={e => setForm(f => ({ ...f, value: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Valor (R$) *</Label>
+            <Input type="number" step="0.01" value={form.value} onChange={e => setForm(f => ({ ...f, value: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 font-mono focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Data de vencimento *</Label>
-            <Input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vencimento *</Label>
+            <Input type="date" value={form.dueDate} onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Data de pagamento</Label>
-            <Input type="date" value={form.paymentDate} onChange={e => setForm(f => ({ ...f, paymentDate: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Pagamento</Label>
+            <Input type="date" value={form.paymentDate} onChange={e => setForm(f => ({ ...f, paymentDate: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
           <div className="space-y-2">
-            <Label>Centro de Custo</Label>
-            <Input value={form.costCenter} onChange={e => setForm(f => ({ ...f, costCenter: e.target.value }))} className="bg-secondary" />
+            <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Centro de Custo</Label>
+            <Input value={form.costCenter} onChange={e => setForm(f => ({ ...f, costCenter: e.target.value }))} className="bg-secondary/50 border-border/50 h-11 focus:border-primary/50" />
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-secondary/30 border border-border/30">
           <Switch checked={form.paid} onCheckedChange={v => setForm(f => ({ ...f, paid: v }))} />
-          <Label>Pago</Label>
+          <Label className="text-sm font-medium">Marcar como pago</Label>
         </div>
 
         <div className="space-y-2">
-          <Label>Observações</Label>
-          <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-secondary" />
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Observações</Label>
+          <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} className="bg-secondary/50 border-border/50 min-h-[80px] focus:border-primary/50" />
         </div>
 
         <div className="space-y-3">
-          <Label className="text-muted-foreground">Documentos</Label>
+          <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Documentos</Label>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { key: 'contrato', label: 'Contrato', icon: FileText, accept: '.pdf,.doc,.docx', file: docs.contrato },
+              { key: 'notaFiscal', label: 'Nota Fiscal', icon: Receipt, accept: '.pdf,.jpg,.png', file: docs.notaFiscal },
+            ].map(item => (
+              <div key={item.key} className="space-y-2">
+                <button type="button" onClick={() => document.getElementById(`${item.key}-${companyId}`)?.click()}
+                  className="w-full flex items-center gap-2 justify-center py-3 px-4 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all"
+                >
+                  <Upload className="h-4 w-4" /> {item.label}
+                </button>
+                <input id={`${item.key}-${companyId}`} type="file" accept={item.accept} className="hidden"
+                  onChange={e => setDocs(d => ({ ...d, [item.key]: e.target.files?.[0] || null }))} />
+                {item.file && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/30 rounded-lg px-3 py-2">
+                    <item.icon className="h-3 w-3 shrink-0" />
+                    <span className="truncate flex-1">{item.file.name}</span>
+                    <X className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors shrink-0"
+                      onClick={() => setDocs(d => ({ ...d, [item.key]: null }))} />
+                  </div>
+                )}
+              </div>
+            ))}
             <div className="space-y-2">
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => document.getElementById(`contract-${companyId}`)?.click()}>
-                <FileText className="h-4 w-4 mr-2" /> Upload Contrato
-              </Button>
-              <input id={`contract-${companyId}`} type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={e => setDocs(d => ({ ...d, contrato: e.target.files?.[0] || null }))} />
-              {docs.contrato && <div className="flex items-center gap-2 text-xs text-muted-foreground"><span>{docs.contrato.name} ({formatFileSize(docs.contrato.size)})</span><X className="h-3 w-3 cursor-pointer" onClick={() => setDocs(d => ({ ...d, contrato: null }))} /></div>}
-            </div>
-            <div className="space-y-2">
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => document.getElementById(`nf-${companyId}`)?.click()}>
-                <Receipt className="h-4 w-4 mr-2" /> Upload Nota Fiscal
-              </Button>
-              <input id={`nf-${companyId}`} type="file" accept=".pdf,.jpg,.png" className="hidden" onChange={e => setDocs(d => ({ ...d, notaFiscal: e.target.files?.[0] || null }))} />
-              {docs.notaFiscal && <div className="flex items-center gap-2 text-xs text-muted-foreground"><span>{docs.notaFiscal.name} ({formatFileSize(docs.notaFiscal.size)})</span><X className="h-3 w-3 cursor-pointer" onClick={() => setDocs(d => ({ ...d, notaFiscal: null }))} /></div>}
-            </div>
-            <div className="space-y-2">
-              <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => document.getElementById(`outros-${companyId}`)?.click()}>
-                <Paperclip className="h-4 w-4 mr-2" /> Outros Documentos
-              </Button>
-              <input id={`outros-${companyId}`} type="file" multiple className="hidden" onChange={e => setDocs(d => ({ ...d, outros: [...d.outros, ...Array.from(e.target.files || [])] }))} />
-              {docs.outros.map((f, i) => <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground"><span>{f.name}</span><X className="h-3 w-3 cursor-pointer" onClick={() => setDocs(d => ({ ...d, outros: d.outros.filter((_, j) => j !== i) }))} /></div>)}
+              <button type="button" onClick={() => document.getElementById(`outros-${companyId}`)?.click()}
+                className="w-full flex items-center gap-2 justify-center py-3 px-4 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:border-primary/40 hover:text-primary hover:bg-primary/5 transition-all"
+              >
+                <Paperclip className="h-4 w-4" /> Outros
+              </button>
+              <input id={`outros-${companyId}`} type="file" multiple className="hidden"
+                onChange={e => setDocs(d => ({ ...d, outros: [...d.outros, ...Array.from(e.target.files || [])] }))} />
+              {docs.outros.map((f, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/30 rounded-lg px-3 py-2">
+                  <Paperclip className="h-3 w-3 shrink-0" />
+                  <span className="truncate flex-1">{f.name}</span>
+                  <X className="h-3 w-3 cursor-pointer hover:text-destructive transition-colors shrink-0"
+                    onClick={() => setDocs(d => ({ ...d, outros: d.outros.filter((_, j) => j !== i) }))} />
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div className="flex gap-3 pt-2">
-          <Button type="submit">Salvar Despesa</Button>
-          <Button type="button" variant="outline" onClick={() => setForm({ description: '', category: '', value: '', dueDate: '', paymentDate: '', paid: false, costCenter: '', notes: '' })}>Cancelar</Button>
+        <div className="flex gap-3 pt-4 border-t border-border/30">
+          <Button type="submit" className="px-8">Salvar Despesa</Button>
+          <Button type="button" variant="outline"
+            onClick={() => setForm({ description: '', category: '', value: '', dueDate: '', paymentDate: '', paid: false, costCenter: '', notes: '' })}>
+            Cancelar
+          </Button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }
