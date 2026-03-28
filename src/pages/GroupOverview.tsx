@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { KPICard } from '@/components/KPICard';
 import { COMPANY_INFO, CompanyId } from '@/lib/types';
@@ -7,6 +7,7 @@ import { DollarSign, TrendingDown, ArrowRightLeft, ShoppingCart, Receipt } from 
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { DateRangeFilter, DateRange, getDefaultDateRange, isInRange } from '@/components/DateRangeFilter';
 
 const COLORS = [COMPANY_INFO.beezzy.color, COMPANY_INFO.palpita.color, COMPANY_INFO.starmind.color];
 
@@ -25,72 +26,68 @@ const axisStyle = { fill: 'hsl(215 15% 40%)', fontSize: 11, fontFamily: 'Inter' 
 
 export default function GroupOverview() {
   const { expenses, revenues } = useData();
+  const [dateRange, setDateRange] = useState<DateRange>(getDefaultDateRange);
 
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
+  const filteredRevenues = useMemo(() => revenues.filter(r => isInRange(r.saleDate, dateRange)), [revenues, dateRange]);
+  const filteredExpenses = useMemo(() => expenses.filter(e => isInRange(e.dueDate, dateRange)), [expenses, dateRange]);
 
-  const isCurrentMonth = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-  };
+  const totalRevenue = filteredRevenues.reduce((sum, r) => sum + r.grossValue, 0);
+  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.value, 0);
+  const totalSales = filteredRevenues.reduce((sum, r) => sum + r.quantity, 0);
+  const totalTaxes = filteredRevenues.reduce((sum, r) => sum + r.taxAmount, 0);
 
-  const totalRevenue = useMemo(() =>
-    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.grossValue, 0), [revenues]);
-  const totalExpenses = useMemo(() =>
-    expenses.filter(e => isCurrentMonth(e.dueDate)).reduce((sum, e) => sum + e.value, 0), [expenses]);
-  const totalSales = useMemo(() =>
-    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.quantity, 0), [revenues]);
-  const totalTaxes = useMemo(() =>
-    revenues.filter(r => isCurrentMonth(r.saleDate)).reduce((sum, r) => sum + r.taxAmount, 0), [revenues]);
-
-  const lineData = useMemo(() => {
-    const months: Record<string, Record<string, number>> = {};
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(); d.setMonth(d.getMonth() - i);
-      const key = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-      months[key] = { beezzy: 0, palpita: 0, starmind: 0 };
+  const monthlyBuckets = useMemo(() => {
+    const buckets: { key: string; label: string; month: number; year: number }[] = [];
+    const d = new Date(dateRange.from);
+    while (d <= dateRange.to) {
+      buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''), month: d.getMonth(), year: d.getFullYear() });
+      d.setMonth(d.getMonth() + 1);
     }
-    revenues.forEach(r => {
-      const d = new Date(r.saleDate);
-      const key = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-      if (months[key]) months[key][r.company] += r.grossValue;
-    });
-    return Object.entries(months).map(([name, data]) => ({ name, ...data }));
-  }, [revenues]);
+    return buckets;
+  }, [dateRange]);
+
+  const lineData = useMemo(() =>
+    monthlyBuckets.map(b => {
+      const row: any = { name: b.label };
+      (['beezzy', 'palpita', 'starmind'] as CompanyId[]).forEach(c => {
+        row[c] = revenues.filter(r => r.company === c && new Date(r.saleDate).getMonth() === b.month && new Date(r.saleDate).getFullYear() === b.year).reduce((s, r) => s + r.grossValue, 0);
+      });
+      return row;
+    }),
+    [revenues, monthlyBuckets]
+  );
 
   const barData = useMemo(() => {
     const companies: CompanyId[] = ['beezzy', 'palpita', 'starmind'];
     return companies.map(c => ({
       name: COMPANY_INFO[c].name,
-      value: expenses.filter(e => e.company === c && isCurrentMonth(e.dueDate)).reduce((s, e) => s + e.value, 0),
+      value: filteredExpenses.filter(e => e.company === c).reduce((s, e) => s + e.value, 0),
     }));
-  }, [expenses]);
+  }, [filteredExpenses]);
 
   const pieData = useMemo(() => {
     const companies: CompanyId[] = ['beezzy', 'palpita', 'starmind'];
     return companies.map(c => ({
       name: COMPANY_INFO[c].name,
-      value: revenues.filter(r => r.company === c && isCurrentMonth(r.saleDate)).reduce((s, r) => s + r.grossValue, 0),
+      value: filteredRevenues.filter(r => r.company === c).reduce((s, r) => s + r.grossValue, 0),
     }));
-  }, [revenues]);
+  }, [filteredRevenues]);
 
   const contasPagar = useMemo(() =>
-    expenses.filter(e => e.status !== 'pago').sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()), [expenses]);
+    filteredExpenses.filter(e => e.status !== 'pago').sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()),
+    [filteredExpenses]
+  );
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-8"
-    >
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Visão Geral do Grupo</h1>
-        <p className="text-sm text-muted-foreground mt-1">Consolidação financeira de todas as empresas</p>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Visão Geral do Grupo</h1>
+          <p className="text-sm text-muted-foreground mt-1">Consolidação financeira de todas as empresas</p>
+        </div>
+        <DateRangeFilter value={dateRange} onChange={setDateRange} />
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard title="Faturamento Total" value={totalRevenue} icon={DollarSign} delay={0} />
         <KPICard title="Despesas Totais" value={totalExpenses} icon={TrendingDown} delay={1} />
@@ -99,23 +96,14 @@ export default function GroupOverview() {
         <KPICard title="Impostos a Pagar" value={totalTaxes} icon={Receipt} delay={4} />
       </div>
 
-      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Receita Mensal por Empresa</h3>
-            <span className="text-[10px] text-muted-foreground/60 bg-secondary/50 px-2 py-1 rounded-md">Últimos 6 meses</span>
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Receita por Empresa</h3>
+            <span className="text-[10px] text-muted-foreground/60 bg-secondary/50 px-2 py-1 rounded-md">{dateRange.label}</span>
           </div>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={lineData}>
-              <defs>
-                {COLORS.map((color, i) => (
-                  <linearGradient key={i} id={`lineGrad${i}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-                    <stop offset="100%" stopColor={color} stopOpacity={0} />
-                  </linearGradient>
-                ))}
-              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(240 5% 14%)" vertical={false} />
               <XAxis dataKey="name" tick={axisStyle} axisLine={false} tickLine={false} />
               <YAxis tick={axisStyle} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000).toFixed(0)}k`} />
@@ -131,7 +119,7 @@ export default function GroupOverview() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="glass-card p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Despesas por Empresa</h3>
-            <span className="text-[10px] text-muted-foreground/60 bg-secondary/50 px-2 py-1 rounded-md">Mês atual</span>
+            <span className="text-[10px] text-muted-foreground/60 bg-secondary/50 px-2 py-1 rounded-md">{dateRange.label}</span>
           </div>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={barData} barSize={48}>
@@ -147,7 +135,6 @@ export default function GroupOverview() {
         </motion.div>
       </div>
 
-      {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="glass-card p-6">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-6">Participação no Faturamento</h3>
