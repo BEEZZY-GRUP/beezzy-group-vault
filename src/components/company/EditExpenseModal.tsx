@@ -85,7 +85,7 @@ export function EditExpenseModal({ expense, companyId, onClose }: Props) {
             </div>
             <div>
               <label className="text-[10px] text-muted-foreground uppercase tracking-[0.07em] block mb-1.5">Status</label>
-              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className={inputClass}>
+              <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value as Expense['status'] }))} className={inputClass}>
                 <option value="pendente">Pendente</option>
                 <option value="pago">Pago</option>
                 <option value="vencido">Vencido</option>

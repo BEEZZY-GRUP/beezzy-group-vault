@@ -54,7 +54,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     <DataContext.Provider value={{
       expenses, revenues, settings,
       addExpense, updateExpense, deleteExpense,
-      addRevenue, updateSettings,
+      addRevenue, updateRevenue, deleteRevenue, updateSettings,
       getCompanyExpenses, getCompanyRevenues, getCompanySettings,
     }}>
       {children}
