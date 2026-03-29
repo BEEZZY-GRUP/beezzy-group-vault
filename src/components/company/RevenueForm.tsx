@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { CompanyId, PAYMENT_METHODS, Revenue } from '@/lib/types';
+import { CompanyId, DocFile, PAYMENT_METHODS, Revenue } from '@/lib/types';
 import { generateId, formatCurrency } from '@/lib/formatters';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { DocumentUpload } from './DocumentUpload';
 
 export function RevenueForm({ companyId }: { companyId: CompanyId }) {
   const { addRevenue, getCompanySettings } = useData();
