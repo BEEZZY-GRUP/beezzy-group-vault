@@ -31,11 +31,12 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
       client: form.client, grossValue: gross, taxAmount, netValue,
       saleDate: form.saleDate, paymentMethod: form.paymentMethod,
       quantity: parseInt(form.quantity) || 1, notes: form.notes || undefined,
-      documents: [],
+      documents,
     };
     addRevenue(revenue);
     toast.success('Faturamento registrado com sucesso');
     setForm({ description: '', client: '', grossValue: '', saleDate: '', paymentMethod: '', quantity: '1', notes: '' });
+    setDocuments([]);
   };
 
   return (
