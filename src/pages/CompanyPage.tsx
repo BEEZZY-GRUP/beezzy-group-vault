@@ -36,6 +36,7 @@ export default function CompanyPage() {
       case 'expense': return <ExpenseForm companyId={company} />;
       case 'revenue': return <RevenueForm companyId={company} />;
       case 'payable': return <AccountsPayable companyId={company} dateFilter={dateFilter} />;
+      case 'revenues': return <RevenueList companyId={company} dateFilter={dateFilter} />;
       case 'reports': return <Reports companyId={company} dateFilter={dateFilter} />;
       case 'settings': return <FinancialSettings companyId={company} />;
       default: return <CompanyDashboard companyId={company} dateFilter={dateFilter} />;

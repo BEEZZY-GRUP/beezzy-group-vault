@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { CompanyId } from '@/lib/types';
+import { CompanyId, Expense } from '@/lib/types';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import { Trash2, Pencil, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { DateFilterState, isInDateRange } from '@/components/DateFilterBar';
+import { EditExpenseModal } from './EditExpenseModal';
 
 interface Props {
   companyId: CompanyId;
@@ -18,6 +19,7 @@ export function AccountsPayable({ companyId, dateFilter }: Props) {
 
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [editing, setEditing] = useState<Expense | null>(null);
 
   const filtered = useMemo(() =>
     allExpenses
@@ -42,15 +44,14 @@ export function AccountsPayable({ companyId, dateFilter }: Props) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+      {editing && <EditExpenseModal expense={editing} companyId={companyId} onClose={() => setEditing(null)} />}
+
       <div className="glass-card overflow-hidden">
         <div className="flex justify-between items-center p-4 border-b border-border">
           <span className="text-[13px] font-medium">Contas a Pagar</span>
           <div className="flex gap-2">
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="bg-secondary border border-input rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground outline-none"
-            >
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+              className="bg-secondary border border-input rounded-md px-2.5 py-1.5 text-[11px] text-muted-foreground outline-none">
               <option value="all">Todos os status</option>
               <option value="pendente">Pendente</option>
               <option value="pago">Pago</option>
@@ -58,12 +59,8 @@ export function AccountsPayable({ companyId, dateFilter }: Props) {
             </select>
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Pesquisar..."
-                className="bg-secondary border border-input rounded-md pl-7 pr-3 py-1.5 text-[11px] text-foreground outline-none w-40 focus:border-primary transition-colors"
-              />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Pesquisar..."
+                className="bg-secondary border border-input rounded-md pl-7 pr-3 py-1.5 text-[11px] text-foreground outline-none w-40 focus:border-primary transition-colors" />
             </div>
           </div>
         </div>
@@ -92,7 +89,7 @@ export function AccountsPayable({ companyId, dateFilter }: Props) {
                 </td>
                 <td className="p-[11px_18px] text-xs">
                   <div className="flex gap-1">
-                    <button className="p-1 text-muted-foreground hover:text-foreground transition-colors" onClick={() => toggleStatus(e.id)}>
+                    <button className="p-1 text-muted-foreground hover:text-foreground transition-colors" onClick={() => setEditing(e)}>
                       <Pencil className="w-[13px] h-[13px]" />
                     </button>
                     <button className="p-1 text-muted-foreground hover:text-destructive transition-colors" onClick={() => { deleteExpense(e.id); toast.success('Registro removido'); }}>
