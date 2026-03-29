@@ -28,11 +28,12 @@ export function ExpenseForm({ companyId }: { companyId: CompanyId }) {
       category: form.category, value: parseFloat(form.value), dueDate: form.dueDate,
       paymentDate: form.paymentDate || undefined, status: form.status as any,
       costCenter: form.costCenter || undefined, notes: form.notes || undefined,
-      documents: [],
+      documents,
     };
     addExpense(expense);
     toast.success('Despesa registrada com sucesso');
     setForm({ description: '', category: '', value: '', dueDate: '', paymentDate: '', status: 'pendente', costCenter: '', notes: '' });
+    setDocuments([]);
   };
 
   return (
