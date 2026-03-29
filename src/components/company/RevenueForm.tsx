@@ -114,17 +114,11 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
           </div>
         )}
 
-        {/* Upload */}
         <div>
           <div className="text-[11px] text-muted-foreground uppercase tracking-[0.07em] mb-3">Documentos</div>
           <div className="grid grid-cols-2 gap-3">
-            {['Nota Fiscal de Saída', 'Outros Documentos'].map(label => (
-              <button type="button" key={label} onClick={() => toast.info(`Upload de ${label} simulado`)}
-                className="border border-dashed border-input rounded-[6px] p-5 text-center hover:border-primary hover:bg-primary/[0.12] transition-all">
-                <div className="text-[11px] font-medium mb-1">{label}</div>
-                <div className="text-[10px] text-muted-foreground">PDF, JPG, PNG</div>
-              </button>
-            ))}
+            <DocumentUpload label="Nota Fiscal de Saída" documents={documents.filter(d => d.name.startsWith('[nf]'))} onDocumentsChange={docs => setDocuments(prev => [...prev.filter(d => !d.name.startsWith('[nf]')), ...docs.map(d => ({ ...d, name: `[nf] ${d.name}` }))])} />
+            <DocumentUpload label="Outros Documentos" documents={documents.filter(d => !d.name.startsWith('[nf]'))} onDocumentsChange={docs => setDocuments(prev => [...prev.filter(d => d.name.startsWith('[nf]')), ...docs])} />
           </div>
         </div>
 
