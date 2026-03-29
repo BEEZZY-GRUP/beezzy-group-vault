@@ -13,6 +13,7 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
   const [form, setForm] = useState({
     description: '', client: '', grossValue: '', saleDate: '', paymentMethod: '', quantity: '1', notes: '',
   });
+  const [documents, setDocuments] = useState<DocFile[]>([]);
 
   const gross = parseFloat(form.grossValue) || 0;
   const taxAmount = Math.round(gross * settings.taxRate / 100 * 100) / 100;
