@@ -47,14 +47,6 @@ function makeRevenues(company: CompanyId, taxRate: number): Revenue[] {
   });
 }
 
-export const defaultExpenses: Expense[] = [
-  ...makeExpenses('beezzy', 15),
-  ...makeExpenses('palpita', 13.5),
-  ...makeExpenses('starmind', 6),
-];
+export const defaultExpenses: Expense[] = [];
 
-export const defaultRevenues: Revenue[] = [
-  ...makeRevenues('beezzy', 15),
-  ...makeRevenues('palpita', 13.5),
-  ...makeRevenues('starmind', 6),
-];
+export const defaultRevenues: Revenue[] = [];
