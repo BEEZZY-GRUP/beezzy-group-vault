@@ -10,6 +10,8 @@ interface DataContextType {
   updateExpense: (e: Expense) => void;
   deleteExpense: (id: string) => void;
   addRevenue: (r: Revenue) => void;
+  updateRevenue: (r: Revenue) => void;
+  deleteRevenue: (id: string) => void;
   updateSettings: (s: CompanySettings) => void;
   getCompanyExpenses: (c: CompanyId) => Expense[];
   getCompanyRevenues: (c: CompanyId) => Revenue[];
@@ -40,6 +42,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const updateExpense = useCallback((e: Expense) => setExpenses(prev => prev.map(x => x.id === e.id ? e : x)), []);
   const deleteExpense = useCallback((id: string) => setExpenses(prev => prev.filter(x => x.id !== id)), []);
   const addRevenue = useCallback((r: Revenue) => setRevenues(prev => [...prev, r]), []);
+  const updateRevenue = useCallback((r: Revenue) => setRevenues(prev => prev.map(x => x.id === r.id ? r : x)), []);
+  const deleteRevenue = useCallback((id: string) => setRevenues(prev => prev.filter(x => x.id !== id)), []);
   const updateSettings = useCallback((s: CompanySettings) => setSettings(prev => prev.map(x => x.id === s.id ? s : x)), []);
 
   const getCompanyExpenses = useCallback((c: CompanyId) => expenses.filter(e => e.company === c), [expenses]);
@@ -50,7 +54,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     <DataContext.Provider value={{
       expenses, revenues, settings,
       addExpense, updateExpense, deleteExpense,
-      addRevenue, updateSettings,
+      addRevenue, updateRevenue, deleteRevenue, updateSettings,
       getCompanyExpenses, getCompanyRevenues, getCompanySettings,
     }}>
       {children}
