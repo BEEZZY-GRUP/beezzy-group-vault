@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { CompanyId, PAYMENT_METHODS, Revenue } from '@/lib/types';
+import { CompanyId, DocFile, PAYMENT_METHODS, Revenue } from '@/lib/types';
 import { generateId, formatCurrency } from '@/lib/formatters';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { DocumentUpload } from './DocumentUpload';
 
 export function RevenueForm({ companyId }: { companyId: CompanyId }) {
   const { addRevenue, getCompanySettings } = useData();
@@ -12,6 +13,7 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
   const [form, setForm] = useState({
     description: '', client: '', grossValue: '', saleDate: '', paymentMethod: '', quantity: '1', notes: '',
   });
+  const [documents, setDocuments] = useState<DocFile[]>([]);
 
   const gross = parseFloat(form.grossValue) || 0;
   const taxAmount = Math.round(gross * settings.taxRate / 100 * 100) / 100;
@@ -29,11 +31,12 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
       client: form.client, grossValue: gross, taxAmount, netValue,
       saleDate: form.saleDate, paymentMethod: form.paymentMethod,
       quantity: parseInt(form.quantity) || 1, notes: form.notes || undefined,
-      documents: [],
+      documents,
     };
     addRevenue(revenue);
     toast.success('Faturamento registrado com sucesso');
     setForm({ description: '', client: '', grossValue: '', saleDate: '', paymentMethod: '', quantity: '1', notes: '' });
+    setDocuments([]);
   };
 
   return (
@@ -111,17 +114,11 @@ export function RevenueForm({ companyId }: { companyId: CompanyId }) {
           </div>
         )}
 
-        {/* Upload */}
         <div>
           <div className="text-[11px] text-muted-foreground uppercase tracking-[0.07em] mb-3">Documentos</div>
           <div className="grid grid-cols-2 gap-3">
-            {['Nota Fiscal de Saída', 'Outros Documentos'].map(label => (
-              <button type="button" key={label} onClick={() => toast.info(`Upload de ${label} simulado`)}
-                className="border border-dashed border-input rounded-[6px] p-5 text-center hover:border-primary hover:bg-primary/[0.12] transition-all">
-                <div className="text-[11px] font-medium mb-1">{label}</div>
-                <div className="text-[10px] text-muted-foreground">PDF, JPG, PNG</div>
-              </button>
-            ))}
+            <DocumentUpload label="Nota Fiscal de Saída" documents={documents.filter(d => d.name.startsWith('[nf]'))} onDocumentsChange={docs => setDocuments(prev => [...prev.filter(d => !d.name.startsWith('[nf]')), ...docs.map(d => ({ ...d, name: `[nf] ${d.name}` }))])} />
+            <DocumentUpload label="Outros Documentos" documents={documents.filter(d => !d.name.startsWith('[nf]'))} onDocumentsChange={docs => setDocuments(prev => [...prev.filter(d => d.name.startsWith('[nf]')), ...docs])} />
           </div>
         </div>
 
