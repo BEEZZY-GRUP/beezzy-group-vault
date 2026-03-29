@@ -10,6 +10,8 @@ interface DataContextType {
   updateExpense: (e: Expense) => void;
   deleteExpense: (id: string) => void;
   addRevenue: (r: Revenue) => void;
+  updateRevenue: (r: Revenue) => void;
+  deleteRevenue: (id: string) => void;
   updateSettings: (s: CompanySettings) => void;
   getCompanyExpenses: (c: CompanyId) => Expense[];
   getCompanyRevenues: (c: CompanyId) => Revenue[];
