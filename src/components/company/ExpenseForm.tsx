@@ -14,6 +14,7 @@ export function ExpenseForm({ companyId }: { companyId: CompanyId }) {
   const [form, setForm] = useState({
     description: '', category: '', value: '', dueDate: '', paymentDate: '', status: 'pendente', costCenter: '', notes: '',
   });
+  const [documents, setDocuments] = useState<DocFile[]>([]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
