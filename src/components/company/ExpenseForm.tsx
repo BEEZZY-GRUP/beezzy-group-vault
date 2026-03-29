@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { CompanyId, DEFAULT_CATEGORIES, Expense } from '@/lib/types';
+import { CompanyId, DEFAULT_CATEGORIES, DocFile, Expense } from '@/lib/types';
 import { generateId } from '@/lib/formatters';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { DocumentUpload } from './DocumentUpload';
 
 export function ExpenseForm({ companyId }: { companyId: CompanyId }) {
   const { addExpense, getCompanySettings } = useData();
