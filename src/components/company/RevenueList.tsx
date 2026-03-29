@@ -75,7 +75,7 @@ export function RevenueList({ companyId, dateFilter }: Props) {
                     <button className="p-1 text-muted-foreground hover:text-foreground transition-colors" onClick={() => setEditing(r)}>
                       <Pencil className="w-[13px] h-[13px]" />
                     </button>
-                    <button className="p-1 text-muted-foreground hover:text-destructive transition-colors" onClick={() => { deleteRevenue(r.id); toast.success('Faturamento removido'); }}>
+                    <button className="p-1 text-muted-foreground hover:text-destructive transition-colors" onClick={() => { if (window.confirm('Tem certeza que deseja excluir este faturamento?')) { deleteRevenue(r.id); toast.success('Faturamento removido'); } }}>
                       <Trash2 className="w-[13px] h-[13px]" />
                     </button>
                   </div>
