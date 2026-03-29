@@ -5,6 +5,7 @@ import { CompanyDashboard } from '@/components/company/CompanyDashboard';
 import { ExpenseForm } from '@/components/company/ExpenseForm';
 import { RevenueForm } from '@/components/company/RevenueForm';
 import { AccountsPayable } from '@/components/company/AccountsPayable';
+import { RevenueList } from '@/components/company/RevenueList';
 import { Reports } from '@/components/company/Reports';
 import { FinancialSettings } from '@/components/company/FinancialSettings';
 import { motion } from 'framer-motion';
@@ -15,6 +16,7 @@ const tabs = [
   { value: 'expense', label: 'Lançar Despesa' },
   { value: 'revenue', label: 'Lançar Faturamento' },
   { value: 'payable', label: 'Contas a Pagar' },
+  { value: 'revenues', label: 'Faturamentos' },
   { value: 'reports', label: 'Relatórios' },
   { value: 'settings', label: 'Config. Financeiras' },
 ];
